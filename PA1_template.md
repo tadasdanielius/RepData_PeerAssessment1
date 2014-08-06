@@ -1,7 +1,8 @@
 # Reproducible Research: Peer Assessment 1
 
 ## Loading and preprocessing the data
-```{r loaddata}
+
+```r
   conn <- unz("activity.zip", "activity.csv");
   activity.measured.data <- read.csv(conn, na.string="NA");
   data <- activity.measured.data
@@ -10,13 +11,15 @@
 
 ## What is mean total number of steps taken per day?
 Data aggregation by steps taken per day
-```{r steps_per_day_aggregation}
+
+```r
 data.steps_per_day <- aggregate(steps~date, data, sum, na.action = na.omit);
 ```
 
 For this figure we will be using base plot
 
-```{r steps_per_day_histogram}
+
+```r
 hist(x=data.steps_per_day$steps, 
        main="Total number of steps taken per day histogram",
        xlab="Steps",
@@ -25,24 +28,38 @@ hist(x=data.steps_per_day$steps,
        col="purple");
 ```
 
+![plot of chunk steps_per_day_histogram](figure/steps_per_day_histogram.png) 
+
 Calculation of the mean and median of total number of steps taken per day
 
-```{r mean}
+
+```r
 mean(data.steps_per_day$steps);
 ```
 
-```{r median}
+```
+## [1] 10766
+```
+
+
+```r
 median(data.steps_per_day$steps);
+```
+
+```
+## [1] 10765
 ```
 
 
 ## What is the average daily activity pattern?
 
-```{r avg_aggregate}
+
+```r
 data.mean.steps_per_interval <- aggregate(steps~interval, data, mean, na.action = na.omit);
 ```
 
-```{r avg_daily_plot}
+
+```r
 plot(data.mean.steps_per_interval$interval, 
        data.mean.steps_per_interval$steps, 
        type="l", 
@@ -52,23 +69,37 @@ plot(data.mean.steps_per_interval$interval,
        col="blue")
 ```
 
+![plot of chunk avg_daily_plot](figure/avg_daily_plot.png) 
+
 Visible pattern shows when number of steps is highest which might indicate when people go to work, having lunch break and going back home.
 
 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps.
-```{r max_num_of_steps}
+
+```r
 index <- which.max(data.mean.steps_per_interval[,2]);
 data.mean.steps_per_interval[index,];
 ```
 
+```
+##     interval steps
+## 104      835 206.2
+```
+
 ## Imputing missing values
 Calculate and report the total number of missing values in the dataset
-```{r missing_value_count}
+
+```r
 sum(is.na(data))
+```
+
+```
+## [1] 2304
 ```
 
 Filling in all of the missing values in the dataset. The strategy is to use the mean for that 5-minute interval
 
-```{r replace_NA}
+
+```r
 replace.missing.value <- function(steps, interval) {
   if (!is.na(steps)){
     new.value <- steps;
@@ -85,7 +116,8 @@ data.replaced$steps <- mapply(replace.missing.value,data$steps,data$interval);
 
 Histogram of the total number of steps taken each day.
 
-```{r missing_value_hist}
+
+```r
 data.replaced.steps_per_day <- aggregate(steps~date, data.replaced, sum);
 
 hist(x=data.replaced.steps_per_day$steps, 
@@ -96,9 +128,12 @@ hist(x=data.replaced.steps_per_day$steps,
        col="purple");
 ```
 
+![plot of chunk missing_value_hist](figure/missing_value_hist.png) 
+
 Another way of presenting the difference between datasets
 
-```{r ggplot_hist}
+
+```r
 data.replaced.steps_per_day$Dataset <- factor("After Imputation");
 data.steps_per_day$Dataset <- factor("Original");
 
@@ -108,14 +143,26 @@ merged <- rbind(data.replaced.steps_per_day,data.steps_per_day)
 ggplot(merged, aes(steps, fill = Dataset)) + geom_density(alpha = 0.1,na.rm=T)
 ```
 
+![plot of chunk ggplot_hist](figure/ggplot_hist.png) 
+
 After imputation compare the mean and median
 
-```{r mean_after_imputation}
+
+```r
 mean(data.replaced.steps_per_day$steps);
 ```
 
-```{r median_after_imputation}
+```
+## [1] 10766
+```
+
+
+```r
 median(data.replaced.steps_per_day$steps);
+```
+
+```
+## [1] 10766
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -124,7 +171,8 @@ median(data.replaced.steps_per_day$steps);
 * Create two factors: workday and weekend
 * Plot the figure
 
-```{r fill_weekdays}
+
+```r
 data.replaced$weekday <- weekdays(data$date);
 
 create.day.factor <- function(day) {
@@ -138,11 +186,14 @@ data.replaced$day <- mapply(create.day.factor,data.replaced$weekday);
 data.replaced.avarage.day <- aggregate(steps ~ interval + day, data.replaced, mean);
 ```
 
-```{r weekday_plot}
+
+```r
 ggplot(data.replaced.avarage.day, aes(interval, steps)) + 
   geom_line() + 
   facet_grid(day ~ .) + 
   xlab("Interval") + 
   ylab("Number of steps");
 ```
+
+![plot of chunk weekday_plot](figure/weekday_plot.png) 
 
